@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Environment
+.env
+.venv/
+venv/
+
+# Generated databases / vector stores
+qdrant_data/
+
+# Audio generated during testing
+*.wav
+
+# Large ML model files
+*.onnx
+
+# Generated embeddings
+embeddings/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
