@@ -1,0 +1,26 @@
+{
+  "evaluated_at": "2026-10-14T17:47:29.151474+00:00",
+  "total_dataset_questions": 136,
+  "test_questions": 94,
+  "development_questions": 42,
+  "generation_success_count": 94,
+  "generation_failure_count": 0,
+  "generation_success_rate": 1.0,
+  "generation_failure_rate": 0.0,
+  "latency_seconds": {
+    "average": 1.9036,
+    "median": 1.8718,
+    "p95": 2.6514,
+    "minimum": 0.9374,
+    "maximum": 8.3981
+  },
+  "retrieval_metrics": null,
+  "intent_classification_metrics": null,
+  "answer_quality_metrics": null,
+  "acceptance_criterion_pass_rate": null,
+  "limitations": [
+    "Generation success does not establish answer correctness.",
+    "Retrieval relevance labels are unavailable.",
+    "Acceptance criteria were not automatically scored."
+  ]
+}

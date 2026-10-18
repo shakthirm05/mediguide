@@ -1,0 +1,101 @@
+eval_id,question,category,rank,chunk_id,relevance,review_notes
+EVAL-001,What should I do for my first appointment?,Registration,1,MGCH-0023,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-001,What should I do for my first appointment?,Registration,2,MGCH-0279,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-001,What should I do for my first appointment?,Registration,3,MGCH-0021,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-001,What should I do for my first appointment?,Registration,4,MGCH-0001,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-001,What should I do for my first appointment?,Registration,5,MGCH-0283,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-002,Can you book an appointment now?,Appointments,1,MGCH-0283,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-002,Can you book an appointment now?,Appointments,2,MGCH-0014,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-002,Can you book an appointment now?,Appointments,3,MGCH-0023,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-002,Can you book an appointment now?,Appointments,4,MGCH-0232,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-002,Can you book an appointment now?,Appointments,5,MGCH-0234,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-003,I missed my appointment. Is my referral cancelled?,Appointments,1,MGCH-0232,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-003,I missed my appointment. Is my referral cancelled?,Appointments,2,MGCH-0018,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-003,I missed my appointment. Is my referral cancelled?,Appointments,3,MGCH-0172,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-003,I missed my appointment. Is my referral cancelled?,Appointments,4,MGCH-0233,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-003,I missed my appointment. Is my referral cancelled?,Appointments,5,MGCH-0234,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-004,Where is Cardiology?,Navigation,1,MGCH-0046,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-004,Where is Cardiology?,Navigation,2,MGCH-0253,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-004,Where is Cardiology?,Navigation,3,MGCH-0091,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-004,Where is Cardiology?,Navigation,4,MGCH-0211,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-004,Where is Cardiology?,Navigation,5,MGCH-0294,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-005,Take me to Billing.,Navigation,1,MGCH-0217,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-005,Take me to Billing.,Navigation,2,MGCH-0245,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-005,Take me to Billing.,Navigation,3,MGCH-0305,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-005,Take me to Billing.,Navigation,4,MGCH-0095,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-005,Take me to Billing.,Navigation,5,MGCH-0093,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-006,I use a wheelchair. Take me upstairs.,Accessibility,1,MGCH-0034,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-006,I use a wheelchair. Take me upstairs.,Accessibility,2,MGCH-0180,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-006,I use a wheelchair. Take me upstairs.,Accessibility,3,MGCH-0243,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-006,I use a wheelchair. Take me upstairs.,Accessibility,4,MGCH-0126,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-006,I use a wheelchair. Take me upstairs.,Accessibility,5,MGCH-0236,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-007,Where is the prayer room?,Navigation,1,MGCH-0202,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-007,Where is the prayer room?,Navigation,2,MGCH-0291,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-007,Where is the prayer room?,Navigation,3,MGCH-0253,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-007,Where is the prayer room?,Navigation,4,MGCH-0041,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-007,Where is the prayer room?,Navigation,5,MGCH-0165,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-008,Is Dr Arun available today?,Doctor directory,1,MGCH-0059,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-008,Is Dr Arun available today?,Doctor directory,2,MGCH-0283,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-008,Is Dr Arun available today?,Doctor directory,3,MGCH-0290,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-008,Is Dr Arun available today?,Doctor directory,4,MGCH-0235,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-008,Is Dr Arun available today?,Doctor directory,5,MGCH-0234,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-009,What are visiting hours?,Visitor policy,1,MGCH-0219,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-009,What are visiting hours?,Visitor policy,2,MGCH-0133,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-009,What are visiting hours?,Visitor policy,3,MGCH-0155,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-009,What are visiting hours?,Visitor policy,4,MGCH-0220,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-009,What are visiting hours?,Visitor policy,5,MGCH-0276,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-010,Can I bring food to a patient?,Visitor policy,1,MGCH-0262,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-010,Can I bring food to a patient?,Visitor policy,2,MGCH-0076,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-010,Can I bring food to a patient?,Visitor policy,3,MGCH-0131,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-010,Can I bring food to a patient?,Visitor policy,4,MGCH-0068,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-010,Can I bring food to a patient?,Visitor policy,5,MGCH-0138,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-011,Can I take a photo in the ward?,Visitor policy,1,MGCH-0221,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-011,Can I take a photo in the ward?,Visitor policy,2,MGCH-0077,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-011,Can I take a photo in the ward?,Visitor policy,3,MGCH-0261,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-011,Can I take a photo in the ward?,Visitor policy,4,MGCH-0263,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-011,Can I take a photo in the ward?,Visitor policy,5,MGCH-0262,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-012,Tell me my father’s room number.,Privacy,1,MGCH-0206,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-012,Tell me my father’s room number.,Privacy,2,MGCH-0032,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-012,Tell me my father’s room number.,Privacy,3,MGCH-0073,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-012,Tell me my father’s room number.,Privacy,4,MGCH-0165,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-012,Tell me my father’s room number.,Privacy,5,MGCH-0037,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-013,What documents for planned admission?,Admission,1,MGCH-0237,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-013,What documents for planned admission?,Admission,2,MGCH-0215,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-013,What documents for planned admission?,Admission,3,MGCH-0239,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-013,What documents for planned admission?,Admission,4,MGCH-0284,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-013,What documents for planned admission?,Admission,5,MGCH-0063,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-014,Insurance approval is pending. Should we wait?,Insurance,1,MGCH-0247,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-014,Insurance approval is pending. Should we wait?,Insurance,2,MGCH-0103,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-014,Insurance approval is pending. Should we wait?,Insurance,3,MGCH-0067,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-014,Insurance approval is pending. Should we wait?,Insurance,4,MGCH-0215,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-014,Insurance approval is pending. Should we wait?,Insurance,5,MGCH-0102,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-015,What happens before discharge?,Discharge,1,MGCH-0218,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-015,What happens before discharge?,Discharge,2,MGCH-0088,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-015,What happens before discharge?,Discharge,3,MGCH-0081,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-015,What happens before discharge?,Discharge,4,MGCH-0242,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-015,What happens before discharge?,Discharge,5,MGCH-0285,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-016,Explain my discharge prescription.,Clinical boundary,1,MGCH-0169,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-016,Explain my discharge prescription.,Clinical boundary,2,MGCH-0218,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-016,Explain my discharge prescription.,Clinical boundary,3,MGCH-0087,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-016,Explain my discharge prescription.,Clinical boundary,4,MGCH-0242,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-016,Explain my discharge prescription.,Clinical boundary,5,MGCH-0250,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-017,Does cashless mean I pay nothing?,Insurance,1,MGCH-0100,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-017,Does cashless mean I pay nothing?,Insurance,2,MGCH-0198,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-017,Does cashless mean I pay nothing?,Insurance,3,MGCH-0215,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-017,Does cashless mean I pay nothing?,Insurance,4,MGCH-0101,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-017,Does cashless mean I pay nothing?,Insurance,5,MGCH-0193,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-018,Is this hospital in my insurer network?,Insurance,1,MGCH-0100,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-018,Is this hospital in my insurer network?,Insurance,2,MGCH-0193,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-018,Is this hospital in my insurer network?,Insurance,3,MGCH-0288,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-018,Is this hospital in my insurer network?,Insurance,4,MGCH-0200,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-018,Is this hospital in my insurer network?,Insurance,5,MGCH-0119,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-019,How much does admission cost?,Billing,1,MGCH-0064,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-019,How much does admission cost?,Billing,2,MGCH-0239,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-019,How much does admission cost?,Billing,3,MGCH-0215,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-019,How much does admission cost?,Billing,4,MGCH-0063,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-019,How much does admission cost?,Billing,5,MGCH-0284,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-020,Can my sister collect my records?,Records,1,MGCH-0113,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-020,Can my sister collect my records?,Records,2,MGCH-0292,2.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-020,Can my sister collect my records?,Records,3,MGCH-0251,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-020,Can my sister collect my records?,Records,4,MGCH-0162,0.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.
+EVAL-020,Can my sister collect my records?,Records,5,MGCH-0212,1.0,Preliminary assistant-assigned label based on retrieved chunk text; human spot-check recommended.

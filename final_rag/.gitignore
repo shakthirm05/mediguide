@@ -1,0 +1,5 @@
+.env
+.env.*
+!.env.example
+# Ignore only the locked system file, allow the rest of the data
+*.lock

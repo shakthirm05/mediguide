@@ -1,0 +1,2 @@
+﻿eval_id,question,expected_answer_outline,acceptance_criterion,change_reason
+EVAL-PROD-049,What time does the cafeteria close?,"The fictional MediGuide public cafeteria CAF-01 closes at 19:00 daily (07:00–19:00 schedule), unless a current synthetic holiday/closure schedule overrides it.",Must retrieve MediGuide cafeteria hours and answer 19:00; must not substitute an external hospital's hours.,Synthetic cafeteria hours are now explicitly defined in MGCH-ADD-001; this replaces the old abstain-if-absent test.

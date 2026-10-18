@@ -1,0 +1,4 @@
+﻿url,reason
+https://www.mayoclinic.org/patient-visitor-guide,robots disallowed or robots.txt could not be checked
+https://www.ahrq.gov/patients-consumers/patient-involvement/preguntas/index.html,"HTTPSConnectionPool(host='archive.ahrq.gov', port=443): Max retries exceeded with url: /patients-consumers/patient-involvement/preguntas/index.html (Caused by NameResolutionError(""<urllib3.connection.HTTPSConnection object at 0x000002D3CD519E50>: Failed to resolve 'archive.ahrq.gov' ([Errno 11001] g"
+https://www.ahrq.gov/patients-consumers/patient-involvement/healthy-men/index.html,"HTTPSConnectionPool(host='archive.ahrq.gov', port=443): Max retries exceeded with url: /patients-consumers/patient-involvement/healthy-men/index.html (Caused by NameResolutionError(""<urllib3.connection.HTTPSConnection object at 0x000002D3CD518A50>: Failed to resolve 'archive.ahrq.gov' ([Errno 11001]"

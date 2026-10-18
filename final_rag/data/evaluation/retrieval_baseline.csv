@@ -1,0 +1,6 @@
+question,assessment,provisional_relevant_ids,retrieved_ids_ranked,hit_at_1,hit_at_3,hit_at_5
+What should I do for my first appointment?,provisional_labels,MGCH-0013,MGCH-0023;MGCH-0085;MGCH-0014;MGCH-0021;MGCH-0013,0,0,1
+How do I request wheelchair assistance?,provisional_labels,MGCH-0008;MGCH-0126;MGCH-0294,MGCH-0294;MGCH-0008;MGCH-0126;MGCH-0236;MGCH-0258,1,1,1
+What should a visitor know before entering the hospital?,provisional_labels,MGCH-0075;MGCH-0221,MGCH-0221;MGCH-0291;MGCH-0252;MGCH-0075;MGCH-0290,1,1,1
+Where is Cardiology?,missing_indexed_evidence,,MGCH-0013;MGCH-0059;MGCH-0275;MGCH-0103;MGCH-0170,,,
+Can you book an appointment now?,provisional_labels,MGCH-0013;MGCH-0014,MGCH-0283;MGCH-0085;MGCH-0029;MGCH-0234;MGCH-0232,0,0,0

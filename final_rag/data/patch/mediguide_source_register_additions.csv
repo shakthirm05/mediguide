@@ -1,0 +1,10 @@
+﻿source_id,publisher,title,url,use_in_mediGuide
+SRC-MOHFW-PATIENT-RIGHTS,India Ministry of Health and Family Welfare,Charter of Patients' Rights and Responsibilities,https://clinicalestablishments.mohfw.gov.in/sites/default/files/2023-06/3181.pdf,"Patient information, records/itemised bills, confidentiality and dignity; paraphrased general guidance."
+SRC-ORS-APPOINTMENTS,Online Registration System (Government of India),ORS patient portal FAQ,https://ors.gov.in/copp/faq.jsp,General appointment flow and confirmation; not used as MediGuide's live booking state.
+SRC-IRDAI-HEALTH-INSURANCE,Insurance Regulatory and Development Authority of India,FAQs on Health Insurance Regulations,https://irdai.gov.in/faqs-on-health-insurance-regulations,General insurance claim principles; individual policy coverage must be determined from the policy and insurer.
+SRC-IRDAI-GRIEVANCES,Insurance Regulatory and Development Authority of India,Grievance Redressal Mechanism,https://irdai.gov.in/grievance-redressal-mechanism1,"General route: approach insurer first, then IRDAI if unresolved/unsatisfactory."
+SYN-MEDIGUIDE-FACILITIES,MediGuide project team (synthetic),Fictional cafeteria schedule and location,,Synthetic facts created for the fictional MediGuide simulation; not sourced from an external hospital.
+SYN-MEDIGUIDE-VISITOR-POLICY,MediGuide project team (synthetic),Fictional visitor hours,,Synthetic MediGuide policy for project simulation.
+SYN-MEDIGUIDE-LOST-PROPERTY,MediGuide project team (synthetic),Fictional lost-property procedure,,Synthetic MediGuide procedure for project simulation.
+SYN-MEDIGUIDE-DIRECTORY,MediGuide project team (synthetic),Fictional department directory,,Synthetic directory record; navigation requires map validation.
+SYN-MEDIGUIDE-SERVICE-HOURS,MediGuide project team (synthetic),Fictional service-hours source-of-truth rule,,Synthetic application rule directing exact schedules to structured records.
