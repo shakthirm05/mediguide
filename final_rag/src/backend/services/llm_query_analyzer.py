@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 ALLOWED_INTENTS = {
     "appointment",
+    "complaint",
     "navigation",
     "patient_documents",
     "hospital_knowledge",
@@ -86,6 +87,10 @@ current message or established in conversation history.
 
 appointment:
 Requests to book, check, cancel, or reschedule an appointment.
+
+complaint:
+Requests to submit or raise a complaint, list the authenticated user's
+complaints, or check a complaint's status using its reference.
 
 patient_documents:
 Requests concerning the authenticated user's own uploaded reports, scans,
@@ -371,6 +376,7 @@ The result must contain the schema-required fields:
 
 Use the exact allowed intent values:
 - appointment
+- complaint
 - navigation
 - patient_documents
 - hospital_knowledge
@@ -623,6 +629,45 @@ def _deterministic_intent(question: str) -> str | None:
     if any(re.search(pattern, text) for pattern in patient_document_patterns):
         return "patient_documents"
 
+        # Complaint listing and tracking must not depend on LLM classification.
+    complaint_list_patterns = (
+        r"\b(list|show|view|display)\b.{0,40}\b(my|all|previous|past)\b.{0,25}\bcomplaints?\b",
+        r"\b(my|all|previous|past)\s+complaint history\b",
+        r"\bcomplaint history\b",
+        r"\b(show|view|list)\b.{0,25}\bcomplaints?\b",
+    )
+
+    if any(
+        re.search(pattern, text)
+        for pattern in complaint_list_patterns
+    ):
+        return "complaint"
+
+    complaint_track_patterns = (
+        r"\b(check|track|follow up on|status of)\b.{0,45}\bcomplaint\b",
+        r"\bcomplaint\b.{0,35}\b(status|progress|update|reference)\b",
+        r"\bwhat is the status of my complaint\b",
+        r"\bwhere is my complaint\b",
+        r"\bMG-CMP-[A-Z0-9]+\b",
+    )
+
+    if any(
+        re.search(pattern, text, re.IGNORECASE)
+        for pattern in complaint_track_patterns
+    ):
+        return "complaint"
+
+    complaint_submit_patterns = (
+        r"\b(raise|file|submit|lodge|register|make)\b.{0,30}\bcomplaint\b",
+        r"\b(i want to complain|i need to complain|i have a complaint)\b",
+        r"\b(report an issue|report a problem|give feedback)\b",
+    )
+
+    if any(
+        re.search(pattern, text)
+        for pattern in complaint_submit_patterns
+    ):
+        return "complaint"
     hospital_information_patterns = (
         r"\bwhere\s+(?:is|are|can i find|do i find)\b",
         r"\bwhere's\b",

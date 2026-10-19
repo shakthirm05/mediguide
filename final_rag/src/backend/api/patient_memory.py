@@ -1,12 +1,13 @@
+
 # src/backend/api/patient_memory.py
 
+from typing import Literal
 from uuid import UUID, uuid4
 
 import psycopg
-from psycopg.rows import dict_row
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from typing import Literal
+from psycopg.rows import dict_row
 
 from src.backend.auth.dependencies import get_current_user
 from src.backend.database.connection import DATABASE_URL
@@ -16,6 +17,16 @@ router = APIRouter(
     prefix="/api/v1/patient/memory",
     tags=["Patient Memory"],
 )
+
+MAX_PREFERENCE_LENGTH = 200
+
+ALLOWED_PREFERENCE_KEYS = {
+    "preferred_language",
+    "response_style",
+    "accessibility_support",
+    "communication_preference",
+    "preferred_route",
+}
 
 
 class MemoryConsentRequest(BaseModel):
@@ -30,11 +41,14 @@ class MemoryItemRequest(BaseModel):
         "communication_preference",
         "preferred_route",
     ]
-    memory_value: str = Field(min_length=1, max_length=500)
+    memory_value: str = Field(
+        min_length=1,
+        max_length=MAX_PREFERENCE_LENGTH,
+    )
 
 
 def _get_patient_id(cursor, authenticated_user_id: str) -> UUID:
-    """Resolve the linked patient profile from the authenticated account."""
+    """Resolve the patient profile belonging to the authenticated user."""
     cursor.execute(
         """
         SELECT patient_id
@@ -55,22 +69,29 @@ def _get_patient_id(cursor, authenticated_user_id: str) -> UUID:
 
 
 def _require_consent(cursor, patient_id: UUID) -> None:
+    """
+    Require explicit consent and lock its row until the transaction ends.
+
+    Consent revocation uses the same row, so a concurrent save cannot
+    insert a preference after revocation has completed.
+    """
     cursor.execute(
         """
         SELECT granted
         FROM patient_memory_consent
         WHERE patient_id = %s
+        FOR UPDATE
         """,
         (patient_id,),
     )
     row = cursor.fetchone()
 
-    if row is None or not row["granted"]:
+    if row is None or row["granted"] is not True:
         raise HTTPException(
             status_code=403,
             detail=(
-                "Patient memory is disabled. "
-                "Explicit consent is required before saving or retrieving it."
+                "Patient memory is disabled. Explicit consent is required "
+                "before saving or retrieving it."
             ),
         )
 
@@ -80,20 +101,29 @@ def set_memory_consent(
     request: MemoryConsentRequest,
     current_user: dict = Depends(get_current_user),
 ):
-    """Enable or revoke persistent patient-memory consent."""
-    with psycopg.connect(DATABASE_URL, row_factory=dict_row) as conn:
+    """Grant or revoke persistent patient-memory consent."""
+    with psycopg.connect(
+        DATABASE_URL,
+        row_factory=dict_row,
+    ) as conn:
         with conn.cursor() as cursor:
             patient_id = _get_patient_id(
-                cursor, str(current_user["user_id"])
+                cursor,
+                str(current_user["user_id"]),
             )
 
+            # INSERT or UPDATE locks the consent row for this transaction.
             cursor.execute(
                 """
                 INSERT INTO patient_memory_consent (
-                    patient_id, granted, granted_at, updated_at
+                    patient_id,
+                    granted,
+                    granted_at,
+                    updated_at
                 )
                 VALUES (
-                    %s, %s,
+                    %s,
+                    %s,
                     CASE WHEN %s THEN NOW() ELSE NULL END,
                     NOW()
                 )
@@ -105,6 +135,7 @@ def set_memory_consent(
                         ELSE NULL
                     END,
                     updated_at = NOW()
+                RETURNING granted
                 """,
                 (
                     patient_id,
@@ -112,9 +143,10 @@ def set_memory_consent(
                     request.granted,
                 ),
             )
+            cursor.fetchone()
 
-            # Revoking consent removes the saved preference entries.
             if not request.granted:
+                # Delete all stored preferences in the same transaction.
                 cursor.execute(
                     """
                     DELETE FROM patient_memory_items
@@ -123,6 +155,7 @@ def set_memory_consent(
                     (patient_id,),
                 )
 
+    # The connection context commits before execution reaches this return.
     return {
         "patient_memory_enabled": request.granted,
         "message": (
@@ -137,11 +170,15 @@ def set_memory_consent(
 def get_patient_memory(
     current_user: dict = Depends(get_current_user),
 ):
-    """Return only the authenticated patient's saved memory."""
-    with psycopg.connect(DATABASE_URL, row_factory=dict_row) as conn:
+    """Return the authenticated patient's preferences when consented."""
+    with psycopg.connect(
+        DATABASE_URL,
+        row_factory=dict_row,
+    ) as conn:
         with conn.cursor() as cursor:
             patient_id = _get_patient_id(
-                cursor, str(current_user["user_id"])
+                cursor,
+                str(current_user["user_id"]),
             )
 
             cursor.execute(
@@ -153,9 +190,8 @@ def get_patient_memory(
                 (patient_id,),
             )
             consent = cursor.fetchone()
-            enabled = bool(consent and consent["granted"])
 
-            if not enabled:
+            if consent is None or consent["granted"] is not True:
                 return {
                     "patient_memory_enabled": False,
                     "items": [],
@@ -163,8 +199,12 @@ def get_patient_memory(
 
             cursor.execute(
                 """
-                SELECT memory_id, memory_key, memory_value,
-                       created_at, updated_at
+                SELECT
+                    memory_id,
+                    memory_key,
+                    memory_value,
+                    created_at,
+                    updated_at
                 FROM patient_memory_items
                 WHERE patient_id = %s
                 ORDER BY memory_key
@@ -190,7 +230,7 @@ def save_patient_memory(
     request: MemoryItemRequest,
     current_user: dict = Depends(get_current_user),
 ):
-    """Create or update one explicitly provided patient preference."""
+    """Create or update one allowlisted preference with explicit consent."""
     memory_value = request.memory_value.strip()
 
     if not memory_value:
@@ -199,25 +239,41 @@ def save_patient_memory(
             detail="Memory value cannot be blank.",
         )
 
-    with psycopg.connect(DATABASE_URL, row_factory=dict_row) as conn:
+    # Keep the saved value consistent with the RAG preference loader.
+    memory_value = memory_value[:MAX_PREFERENCE_LENGTH]
+
+    with psycopg.connect(
+        DATABASE_URL,
+        row_factory=dict_row,
+    ) as conn:
         with conn.cursor() as cursor:
             patient_id = _get_patient_id(
-                cursor, str(current_user["user_id"])
+                cursor,
+                str(current_user["user_id"]),
             )
+
+            # The consent row remains locked until this transaction commits.
             _require_consent(cursor, patient_id)
 
             cursor.execute(
                 """
                 INSERT INTO patient_memory_items (
-                    memory_id, patient_id, memory_key, memory_value
+                    memory_id,
+                    patient_id,
+                    memory_key,
+                    memory_value
                 )
                 VALUES (%s, %s, %s, %s)
                 ON CONFLICT (patient_id, memory_key)
                 DO UPDATE SET
                     memory_value = EXCLUDED.memory_value,
                     updated_at = NOW()
-                RETURNING memory_id, memory_key, memory_value,
-                          created_at, updated_at
+                RETURNING
+                    memory_id,
+                    memory_key,
+                    memory_value,
+                    created_at,
+                    updated_at
                 """,
                 (
                     uuid4(),
@@ -240,11 +296,15 @@ def delete_patient_memory(
     memory_id: UUID,
     current_user: dict = Depends(get_current_user),
 ):
-    """Delete a memory entry only if it belongs to this patient."""
-    with psycopg.connect(DATABASE_URL, row_factory=dict_row) as conn:
+    """Delete an entry only when it belongs to the authenticated patient."""
+    with psycopg.connect(
+        DATABASE_URL,
+        row_factory=dict_row,
+    ) as conn:
         with conn.cursor() as cursor:
             patient_id = _get_patient_id(
-                cursor, str(current_user["user_id"])
+                cursor,
+                str(current_user["user_id"]),
             )
 
             cursor.execute(
@@ -264,4 +324,7 @@ def delete_patient_memory(
             detail="Memory entry not found.",
         )
 
-    return {"deleted": True, "memory_id": str(deleted["memory_id"])}
+    return {
+        "deleted": True,
+        "memory_id": str(deleted["memory_id"]),
+    }

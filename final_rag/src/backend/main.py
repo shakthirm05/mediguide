@@ -17,6 +17,17 @@ from src.backend.auth.dependencies import get_current_user
 from src.backend.database.connection import DATABASE_URL, check_database_connection
 from src.backend.services.rag_service import get_rag_service
 from src.backend.api.patient_memory import router as patient_memory_router
+from src.backend.api.complaints import router as complaints_router
+from src.backend.api.speech import router as speech_router
+import base64
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+from src.backend.api.speech import (
+    router as speech_router,
+    transcribe_audio,
+    synthesize_speech,
+    SpeechSynthesisRequest,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +69,8 @@ app.include_router(auth_router)
 app.include_router(patient_identity_router)
 app.include_router(appointments_router)
 app.include_router(patient_memory_router)
+app.include_router(complaints_router)
+app.include_router(speech_router)
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
@@ -190,3 +203,67 @@ def chat(request: AskRequest, current_user: dict = Depends(get_current_user)):
             status_code=503,
             detail="MediGuide could not process the request.",
         )
+
+@app.post("/api/v1/speech/voice-chat", tags=["Speech"])
+def voice_chat(
+    audio: UploadFile = File(...),
+    conversation_id: UUID = Form(...),
+    current_user: dict = Depends(get_current_user),
+):
+    """Transcribe audio, process it through MediGuide chat, and synthesize the answer."""
+
+    # 1. Convert uploaded audio into text using the existing Whisper endpoint logic.
+    transcription = transcribe_audio(
+        audio=audio,
+        current_user=current_user,
+    )
+
+    transcript = transcription["text"].strip()
+
+    if not transcript:
+        raise HTTPException(
+            status_code=422,
+            detail="No speech could be recognized.",
+        )
+
+    # 2. Reuse the existing authenticated chat workflow.
+    # This preserves conversation ownership checks, LangGraph,
+    # RAG, patient memory, and appointment workflows.
+    chat_result = chat(
+        AskRequest(
+            question=transcript,
+            conversation_id=conversation_id,
+        ),
+        current_user=current_user,
+    )
+
+    answer = str(chat_result.get("answer") or "").strip()
+
+    if not answer:
+        raise HTTPException(
+            status_code=502,
+            detail="MediGuide did not generate a response.",
+        )
+
+    # 3. Convert the actual MediGuide answer into WAV audio.
+    audio_response = synthesize_speech(
+        SpeechSynthesisRequest(text=answer),
+        current_user=current_user,
+    )
+
+    # 4. Return the transcript, answer, metadata, and playable audio bytes.
+    return {
+        "conversation_id": str(conversation_id),
+        "transcript": transcript,
+        "language": transcription.get("language"),
+        "answer": answer,
+        "intent": chat_result.get("intent", "unknown"),
+        "workflow_status": chat_result.get(
+            "workflow_status", "in_progress"
+        ),
+        "evidence": chat_result.get("evidence", []),
+        "audio_mime_type": "audio/wav",
+        "audio_base64": base64.b64encode(
+            audio_response.body
+        ).decode("ascii"),
+    }

@@ -348,7 +348,8 @@ def retrieve(
 # Answer generation using local Ollama LLM
 # --------------------------------------------------
 
-def generate_answer(query, evidence, llm):
+
+def generate_answer(query, evidence, llm, preferences=None):
     if not evidence:
         return (
             "I don't have enough verified hospital information "
@@ -365,6 +366,36 @@ def generate_answer(query, evidence, llm):
         )
 
     context = "\n\n".join(context_parts)
+
+    # Patient preferences affect presentation only.
+    preferences = preferences or {}
+
+    preferred_language = preferences.get("preferred_language")
+    response_style = preferences.get("response_style")
+
+    personalization_rules = []
+
+    if preferred_language:
+        personalization_rules.append(
+            f"- Respond in {preferred_language}, while preserving "
+            "official department names, doctor names, room numbers, "
+            "and other identifiers accurately."
+        )
+
+    if response_style:
+        personalization_rules.append(
+            f"- Preferred response style: {response_style}. "
+            "Apply this only to presentation, not factual content "
+            "or safety rules."
+        )
+
+    personalization_prompt = ""
+
+    if personalization_rules:
+        personalization_prompt = (
+            "\n\nPATIENT PREFERENCES (presentation only):\n"
+            + "\n".join(personalization_rules)
+        )
 
     system_prompt = """
 You are MediGuide, an AI-powered hospital information and navigation assistant
@@ -439,7 +470,7 @@ CORE RULES
 - Suggest a next step only when supported by the evidence.
 
 A short, precise, evidence-grounded answer is better than a long, generic one.
-"""
+""" + personalization_prompt
 
     user_prompt = f"""
 PATIENT QUESTION:
@@ -470,6 +501,7 @@ If the evidence is insufficient, say so instead of guessing.
     )
 
     return response["message"]["content"].strip()
+
 
 
 # --------------------------------------------------

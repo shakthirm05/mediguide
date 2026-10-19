@@ -50,3 +50,45 @@ CREATE INDEX IF NOT EXISTS idx_doctors_department
 
 CREATE INDEX IF NOT EXISTS idx_conversations_user_updated
     ON conversations(user_id, updated_at DESC);
+
+
+
+-- Patient memory consent.
+CREATE TABLE IF NOT EXISTS patient_memory_consent (
+    patient_id UUID PRIMARY KEY
+        REFERENCES patient_profiles(patient_id) ON DELETE CASCADE,
+    granted BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Patient memory items used for personalization.
+CREATE TABLE IF NOT EXISTS patient_memory_items (
+    memory_id UUID PRIMARY KEY,
+    patient_id UUID NOT NULL
+        REFERENCES patient_profiles(patient_id) ON DELETE CASCADE,
+    memory_key VARCHAR(100) NOT NULL,
+    memory_value TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT uq_patient_memory_key
+        UNIQUE (patient_id, memory_key),
+
+    CONSTRAINT chk_patient_memory_key
+        CHECK (
+            memory_key IN (
+                'preferred_language',
+                'response_style',
+                'accessibility_support',
+                'communication_preference',
+                'preferred_route'
+            )
+        ),
+
+    CONSTRAINT chk_patient_memory_value
+        CHECK (length(trim(memory_value)) > 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_patient_memory_items_patient
+    ON patient_memory_items(patient_id);

@@ -17,11 +17,13 @@ from src.backend.services.dialogue_state_manager import (
     update_dialogue_state,
 )
 from src.backend.services.llm_query_analyzer import get_query_analyzer
+from src.backend.services.complaint_service import complaint_service
 
 logger = logging.getLogger(__name__)
 
 Intent = Literal[
     "appointment",
+    "complaint",
     "navigation",
     "patient_documents",
     "hospital_knowledge",
@@ -331,6 +333,134 @@ def analyze_query(state: ChatState) -> dict[str, Any]:
             "clarification_question": None,
             "entities": current_entities,
         }
+        # Complaint routing is intentionally added after appointment detection.
+    # Explicit appointment operations always retain their existing priority.
+    previous_workflow_type = (
+        previous_workflow.get("type")
+        if isinstance(previous_workflow, dict)
+        else None
+    )
+    previous_workflow_status = (
+        previous_workflow.get("status")
+        if isinstance(previous_workflow, dict)
+        else None
+    )
+
+    active_complaint = (
+        previous_workflow_type == "complaint"
+        and previous_workflow_status not in {"completed", "failed"}
+    )
+
+    
+    complaint_reference_match = re.search(
+        r"\bMG-CMP-[A-Z0-9]+\b", question, re.IGNORECASE
+    )
+    complaint_reference = (
+        complaint_reference_match.group(0).upper()
+        if complaint_reference_match else None
+    )
+
+    complaint_list_request = bool(re.search(
+        r"\b(list|show|view|display)\b.{0,40}\b(my|all|previous|past)\b"
+        r".{0,25}\bcomplaints?\b|"
+        r"\b(my|all|previous|past)\s+complaint history\b|"
+        r"\bcomplaint history\b|"
+        r"\b(show|view|list)\b.{0,25}\bcomplaints?\b",
+        normalized_question,
+    ))
+
+    complaint_track_request = bool(
+        complaint_reference
+        or re.search(
+            r"\b(check|track|follow up on|status of)\b.{0,45}\bcomplaint\b|"
+            r"\bcomplaint\b.{0,35}\b(status|progress|update|reference)\b|"
+            r"\bwhat is the status of my complaint\b|"
+            r"\bwhere is my complaint\b",
+            normalized_question,
+        )
+    )
+
+    complaint_submit_request = bool(re.search(
+        r"\b(complaint|complain|complaining|"
+        r"report an issue|report a problem|"
+        r"raise an issue|file a complaint|"
+        r"submit a complaint|give feedback|"
+        r"lodge a complaint|register a complaint)\b",
+        normalized_question,
+    ))
+
+    explicit_appointment_operation = (
+        explicit_cancel_request
+        or explicit_list_request
+        or explicit_availability_request
+        or starts_new_booking
+        or (
+            intent == "appointment"
+            and bool(current_entities.get("appointment_action"))
+        )
+    )
+
+    continue_complaint = (
+        active_complaint
+        and intent in {"complaint", "unknown", "general"}
+        and not explicit_appointment_operation
+    )
+
+    if not explicit_appointment_operation and (
+        complaint_list_request
+        or complaint_track_request
+        or complaint_submit_request
+        or continue_complaint
+    ):
+        intent = "complaint"
+
+        if complaint_list_request:
+            complaint_action = "list"
+        elif complaint_track_request:
+            complaint_action = "track"
+        elif active_complaint and continue_complaint:
+            complaint_action = str(
+                previous_workflow.get("action") or "submit"
+            )
+        else:
+            complaint_action = "submit"
+
+        if complaint_reference:
+            current_entities["complaint_reference"] = complaint_reference
+
+        analysis = {
+            **analysis,
+            "intent": "complaint",
+            "needs_clarification": False,
+            "clarification_question": None,
+            "entities": current_entities,
+        }
+
+        if active_complaint and complaint_action == "submit":
+            complaint_workflow = dict(previous_workflow)
+        else:
+            complaint_workflow = {
+                "type": "complaint",
+                "action": complaint_action,
+                "status": "in_progress",
+                "slots": {},
+            }
+
+        complaint_dialogue_state = dict(previous_dialogue_state)
+        complaint_dialogue_state["active_workflow"] = complaint_workflow
+        complaint_slots = dict(complaint_workflow.get("slots") or {})
+
+        return {
+            "intent": "complaint",
+            "query_analysis": analysis,
+            "entities": current_entities,
+            "dialogue_slots": complaint_slots,
+            "dialogue_state": complaint_dialogue_state,
+            "active_workflow": complaint_workflow,
+            "retrieval_question": question,
+            "workflow_status": "in_progress",
+            "error": None,
+        }
 
     slots_for_manager = workflow_slots if resume_appointment else {}
     state_for_manager = dict(previous_dialogue_state)
@@ -436,7 +566,8 @@ def route_intent(state: ChatState) -> str:
         return "general"
     if intent in {"navigation", "patient_documents"}:
         return "deferred"
-
+    if intent == "complaint":
+        return "complaint"
     return "unsupported"
 
 
@@ -1177,7 +1308,304 @@ def handle_appointment(state: ChatState) -> dict[str, Any]:
             "appointment_workflow_failed",
         )
 
+def handle_complaint(state: ChatState) -> dict[str, Any]:
+    """Collect, confirm, and submit a patient complaint."""
 
+    question = str(state.get("question") or "").strip()
+    user_id = state.get("user_id")
+
+    dialogue_state = dict(state.get("dialogue_state") or {})
+    workflow = dict(state.get("active_workflow") or {})
+    slots = dict(workflow.get("slots") or {})
+
+    def respond(
+        answer: str,
+        status: WorkflowStatus,
+        *,
+        error: str | None = None,
+        completed: bool = False,
+    ) -> dict[str, Any]:
+        if completed:
+            next_workflow = None
+            next_slots: dict[str, Any] = {}
+            dialogue_state["active_workflow"] = None
+            dialogue_state.pop("pending_question", None)
+        else:
+            next_workflow = {
+                "type": "complaint",
+                "action": "submit",
+                "status": status,
+                "slots": dict(slots),
+            }
+            next_slots = dict(slots)
+            dialogue_state["active_workflow"] = next_workflow
+            dialogue_state["pending_question"] = answer
+
+        return {
+            "answer": answer,
+            "dialogue_slots": next_slots,
+            "dialogue_state": dialogue_state,
+            "active_workflow": next_workflow,
+            "workflow_status": status,
+            "error": error,
+            "messages": [AIMessage(content=answer)],
+        }
+
+    if not user_id:
+        return respond(
+            "Your authenticated identity is missing. Please sign in again.",
+            "failed",
+            error="missing_authenticated_user",
+            completed=True,
+        )
+
+    normalized = re.sub(
+        r"[^a-z0-9]+", " ", question.casefold()
+    ).strip()
+
+    affirmative_replies = {
+        "yes",
+        "yes confirm",
+        "confirm",
+        "confirm complaint",
+        "submit",
+        "submit complaint",
+        "yes submit",
+        "proceed",
+    }
+
+    negative_replies = {
+        "no",
+        "cancel",
+        "no submit",
+        "do not submit",
+        "dont submit",
+        "stop",
+        "discard",
+    }
+    
+    action = str(workflow.get("action") or "submit").casefold()
+    entities = state.get("entities") or {}
+    analysis_entities = (
+        (state.get("query_analysis") or {}).get("entities") or {}
+    )
+
+    reference_match = re.search(
+        r"\bMG-CMP-[A-Z0-9]+\b", question, re.IGNORECASE
+    )
+    reference = str(
+        analysis_entities.get("complaint_reference")
+        or entities.get("complaint_reference")
+        or (reference_match.group(0) if reference_match else "")
+    ).strip().upper()
+
+    def format_complaint(record):
+        lines = [
+            f"Reference: {record.get('complaint_reference', 'Unavailable')}",
+            f"Category: {record.get('category', 'general')}",
+            f"Status: {record.get('status', 'unknown')}",
+        ]
+        if record.get("created_at"):
+            lines.append(f"Submitted: {record['created_at']}")
+        if record.get("updated_at"):
+            lines.append(f"Last updated: {record['updated_at']}")
+        if record.get("description"):
+            lines.append(f"Description: {record['description']}")
+        return "\n".join(lines)
+
+    if action == "list":
+        try:
+            records = complaint_service.list_complaints(user_id)
+
+            if not records:
+                return respond(
+                    "You don't have any complaints recorded yet.",
+                    "completed",
+                    completed=True,
+                )
+
+            entries = [
+                f"{index}. {format_complaint(record)}"
+                for index, record in enumerate(records, start=1)
+            ]
+            return respond(
+                "Here are your complaints:\n\n" + "\n\n".join(entries),
+                "completed",
+                completed=True,
+            )
+        except Exception:
+            logger.exception("Could not list the user's complaints.")
+            return respond(
+                "I couldn't retrieve your complaints right now. Please try again.",
+                "failed",
+                error="complaint_list_failed",
+                completed=True,
+            )
+
+    if action == "track":
+        if not reference:
+            return respond(
+                "Please provide your complaint reference, for example "
+                "'Check complaint MG-CMP-XXXXXXXX'.",
+                "awaiting_user_input",
+            )
+
+        try:
+            record = complaint_service.get_complaint(
+                user_id=user_id,
+                complaint_reference=reference,
+            )
+
+            if not record:
+                return respond(
+                    "I couldn't find a complaint with that reference in "
+                    "your records. Please check the reference and try again.",
+                    "completed",
+                    completed=True,
+                )
+
+            return respond(
+                "Here is your complaint status:\n\n" + format_complaint(record),
+                "completed",
+                completed=True,
+            )
+        except Exception:
+            logger.exception("Could not retrieve complaint status.")
+            return respond(
+                "I couldn't check that complaint right now. Please try again.",
+                "failed",
+                error="complaint_tracking_failed",
+                completed=True,
+            )
+
+
+    # Step 1: If a submission is awaiting confirmation, handle that first.
+    if slots.get("pending_confirmation") is True:
+
+        if normalized in negative_replies:
+            return respond(
+                "Okay, I haven't submitted your complaint. "
+                "No complaint record was created.",
+                "completed",
+                completed=True,
+            )
+
+        if normalized not in affirmative_replies:
+            return respond(
+                "Your complaint is still awaiting confirmation. "
+                "Reply 'confirm' to submit it, or 'no' to discard it.",
+                "awaiting_user_input",
+            )
+
+        description = str(slots.get("description") or "").strip()
+        category = str(slots.get("category") or "general")
+
+        if len(description) < 5:
+            slots.pop("pending_confirmation", None)
+            slots["awaiting_description"] = True
+            return respond(
+                "Please describe the issue in at least five characters.",
+                "awaiting_user_input",
+            )
+
+        try:
+            result = complaint_service.create_complaint(
+                user_id=user_id,
+                description=description,
+                category=category,
+            )
+
+            reference = result["complaint_reference"]
+            status = result.get("status", "submitted")
+
+            return respond(
+                "Your complaint has been submitted successfully.\n"
+                f"Reference: {reference}\n"
+                f"Category: {category}\n"
+                f"Status: {status}\n\n"
+                "You can use the reference to look up this complaint later.",
+                "completed",
+                completed=True,
+            )
+
+        except ValueError as exc:
+            logger.warning("Complaint validation failed: %s", exc)
+            return respond(
+                str(exc),
+                "awaiting_user_input",
+            )
+
+        except Exception:
+            logger.exception("Complaint submission failed.")
+            return respond(
+                "I couldn't submit your complaint because an error occurred. "
+                "Please try again. I haven't confirmed that the complaint "
+                "was saved.",
+                "failed",
+                error="complaint_submission_failed",
+            )
+
+    # Step 2: Collect a missing complaint description.
+    if slots.get("awaiting_description") is True:
+        if len(question) < 5:
+            return respond(
+                "Please describe the issue in a little more detail.",
+                "awaiting_user_input",
+            )
+
+        slots["description"] = question
+        slots["awaiting_description"] = False
+
+    else:
+        # Step 3: Detect a new complaint request.
+        generic_request = bool(
+            re.fullmatch(
+                r"(hi )?(i want to )?(complain|make a complaint|"
+                r"raise a complaint|file a complaint|submit a complaint|"
+                r"report an issue|report a problem|give feedback|"
+                r"i have a complaint|i need to complain)",
+                normalized,
+            )
+        )
+
+        if generic_request or len(question) < 5:
+            slots["awaiting_description"] = True
+            return respond(
+                "I'm sorry there's an issue. Please describe what happened "
+                "so I can prepare your complaint for confirmation.",
+                "awaiting_user_input",
+            )
+
+        # Use the user's original message as the complaint description.
+        slots["description"] = question
+        slots["awaiting_description"] = False
+
+    # Step 4: Categorize the complaint conservatively.
+    description_lower = str(slots["description"]).casefold()
+
+    if re.search(r"\b(staff|nurse|doctor|receptionist|behavio[u]?r)\b", description_lower):
+        category = "staff"
+    elif re.search(r"\b(bill|billing|payment|invoice|charge|refund)\b", description_lower):
+        category = "billing"
+    elif re.search(r"\b(clean|cleanliness|facility|facilities|toilet|washroom|equipment)\b", description_lower):
+        category = "facilities"
+    elif re.search(r"\b(appointment|booking|reschedule|cancelled appointment)\b", description_lower):
+        category = "appointment"
+    elif re.search(r"\b(wait|waiting|queue|delay|delayed)\b", description_lower):
+        category = "waiting_time"
+    else:
+        category = "general"
+
+    slots["category"] = category
+    slots["pending_confirmation"] = True
+
+    return respond(
+        "Please review your complaint before I submit it.\n\n"
+        f"Category: {category}\n"
+        f"Description: {slots['description']}\n\n"
+        "Reply 'confirm' to submit this complaint, or 'no' to discard it.",
+        "awaiting_user_input",
+    )
 def answer_hospital_question(
     state: ChatState,
     rag_service: Any,
@@ -1358,7 +1786,10 @@ def answer_hospital_question(
                 f"{doctor['department_name']}."
             )
 
-        result = rag_service.ask(question)
+        result = rag_service.ask(
+            question,
+            user_id=str(state["user_id"]) if state.get("user_id") else None,
+        )
 
         return respond(
             result["answer"],
@@ -1476,6 +1907,7 @@ def build_chat_graph(
     graph.add_node("analyze_query", analyze_query)
     graph.add_node("clarification", handle_clarification)
     graph.add_node("appointment", handle_appointment)
+    graph.add_node("complaint", handle_complaint)
 
     graph.add_node(
         "hospital_knowledge",
@@ -1498,6 +1930,7 @@ def build_chat_graph(
             "appointment": "appointment",
             "hospital_knowledge": "hospital_knowledge",
             "general": "general",
+            "complaint": "complaint",
             "deferred": "deferred",
             "unsupported": "unsupported",
         },
@@ -1506,6 +1939,7 @@ def build_chat_graph(
     for node in (
         "clarification",
         "appointment",
+        "complaint",
         "hospital_knowledge",
         "general",
         "deferred",
