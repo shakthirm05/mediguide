@@ -27,7 +27,8 @@ from src.backend.api.speech import (
     synthesize_speech,
     SpeechSynthesisRequest,
 )
-
+from src.backend.api.conversations import router as conversations_router
+from src.backend.api.developer import router as developer_router
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,8 @@ app.include_router(appointments_router)
 app.include_router(patient_memory_router)
 app.include_router(complaints_router)
 app.include_router(speech_router)
+app.include_router(conversations_router)
+app.include_router(developer_router)
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)

@@ -1677,7 +1677,35 @@ def answer_hospital_question(
             ),
             None,
         )
+                # Fallback: resolve explicit department-location questions
+        # directly from the structured directory if the analyzer
+        # did not identify the expected lookup_type.
+        location_question = bool(
+            re.search(
+                r"\b(where is|where's|location of|"
+                r"find the location of|where can i find)\b",
+                question.casefold(),
+            )
+        )
 
+        if lookup_type != "department_location" and location_question:
+            departments = service.list_departments()
+            normalized_question = re.sub(
+                r"[^a-z0-9]+", " ", question.casefold()
+            ).strip()
+
+            matches = [
+                department
+                for department in departments
+                if re.search(
+                    rf"\b{re.escape(department['name'].casefold())}\b",
+                    normalized_question,
+                )
+            ]
+
+            if len(matches) == 1:
+                lookup_type = "department_location"
+                department_name = matches[0]["name"]
         if lookup_type == "department_location":
             if not department_name:
                 return respond(

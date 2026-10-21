@@ -157,3 +157,52 @@ def link_patient(
             status_code=503,
             detail="Patient linking is temporarily unavailable.",
         )
+
+
+class PatientProfileStatusResponse(BaseModel):
+    linked: bool
+    patient_identifier: str | None = None
+
+
+@router.get(
+    "/profile-status",
+    response_model=PatientProfileStatusResponse,
+)
+def get_patient_profile_status(
+    current_user: dict = Depends(get_current_user),
+):
+    user_id = UUID(str(current_user["user_id"]))
+    database_url = os.getenv("DATABASE_URL")
+
+    if not database_url:
+        raise HTTPException(
+            status_code=503,
+            detail="Database configuration is unavailable.",
+        )
+
+    try:
+        with psycopg.connect(database_url, connect_timeout=5) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT patient_identifier
+                    FROM patient_profiles
+                    WHERE user_id = %s
+                    """,
+                    (user_id,),
+                )
+                row = cur.fetchone()
+
+        if row is None:
+            return PatientProfileStatusResponse(linked=False)
+
+        return PatientProfileStatusResponse(
+            linked=True,
+            patient_identifier=row[0],
+        )
+
+    except psycopg.Error:
+        raise HTTPException(
+            status_code=503,
+            detail="Patient profile status is temporarily unavailable.",
+        )
